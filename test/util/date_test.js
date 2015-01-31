@@ -5,6 +5,52 @@ var moment = require('moment');
 var DateUtil = require('../../src/util/date');
 
 describe('DateUtil', function() {
+  describe('#isBefore', function() {
+    it('returns true when the date is before the passed date', function() {
+      var date = new DateUtil(moment('2014-02-08'));
+      var other_date = new DateUtil(moment('2014-02-09'));
+
+      expect(date.isBefore(other_date)).toBe(true);
+    });
+
+    it('returns false when the date is after the passed date', function() {
+      var date = new DateUtil(moment('2014-02-08'));
+      var other_date = new DateUtil(moment('2014-02-05'));
+
+      expect(date.isBefore(other_date)).toBe(false);
+    });
+
+    it('returns false when the passed date is the same day', function() {
+      var date = new DateUtil(moment('2014-02-08'));
+      var other_date = new DateUtil(moment('2014-02-08'));
+
+      expect(date.isBefore(other_date)).toBe(false);
+    });
+  });
+
+  describe('#isAfter', function() {
+    it('returns true when the date is after the passed date', function() {
+      var date = new DateUtil(moment('2014-02-09'));
+      var other_date = new DateUtil(moment('2014-02-08'));
+
+      expect(date.isAfter(other_date)).toBe(true);
+    });
+
+    it('returns false when the date is before the passed date', function() {
+      var date = new DateUtil(moment('2014-02-05'));
+      var other_date = new DateUtil(moment('2014-02-08'));
+
+      expect(date.isAfter(other_date)).toBe(false);
+    });
+
+    it('returns false when the passed date is the same day', function() {
+      var date = new DateUtil(moment('2014-02-08'));
+      var other_date = new DateUtil(moment('2014-02-08'));
+
+      expect(date.isAfter(other_date)).toBe(false);
+    });
+  });
+
   describe('#sameDay', function() {
     it('returns true when the passed date is the same date', function() {
       var date = new DateUtil(moment('2014-02-08'));
@@ -100,6 +146,31 @@ describe('DateUtil', function() {
           return callbackCounter === 7;
         }, 'Callback not called 7 times', 1000);
       });
+    });
+  });
+
+  describe('#safeClone', function() {
+    it('should return a cloned version of _date if date is a valid moment object', function() {
+      var date = moment('2014-02-08');
+      var clonedDate = new DateUtil(date).safeClone();
+
+      expect(clonedDate._date).toNotBe(date);
+      expect(clonedDate._date._i).toBe(date._i);
+    });
+
+    it('should return a null _date if original date is undefined and no alternative is provided', function() {
+      var date = undefined;
+      var clonedDate = new DateUtil(date).safeClone();
+
+      expect(clonedDate._date).toBe(null);
+    });
+
+    it('should return an alternative _date if original date is undefined and an alternative is provided', function() {
+      var date = undefined;
+      var alternative = moment();
+      var clonedDate = new DateUtil(date).safeClone(alternative);
+
+      expect(clonedDate._date).toBe(alternative);
     });
   });
 });

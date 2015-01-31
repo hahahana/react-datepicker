@@ -2,6 +2,14 @@ function DateUtil(date) {
   this._date = date;
 }
 
+DateUtil.prototype.isBefore = function(other) {
+  return this._date.isBefore(other._date, 'day');
+};
+
+DateUtil.prototype.isAfter = function(other) {
+  return this._date.isAfter(other._date, 'day');
+};
+
 DateUtil.prototype.sameDay = function(other) {
   return this._date.isSame(other._date, 'day');
 };
@@ -62,6 +70,13 @@ DateUtil.prototype.subtractMonth = function() {
 
 DateUtil.prototype.clone = function() {
   return new DateUtil(this._date.clone());
+};
+
+DateUtil.prototype.safeClone = function(alternative) {
+  if (!! this._date) return this.clone();
+
+  if (alternative === undefined) alternative = null;
+  return new DateUtil(alternative);
 };
 
 DateUtil.prototype.moment = function() {

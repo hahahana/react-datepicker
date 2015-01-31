@@ -12,7 +12,9 @@ var Calendar = React.createClass({
 
   getInitialState: function() {
     return {
-      date: !! this.props.selected ? new DateUtil(this.props.selected).clone() : new DateUtil(moment())
+      date: new DateUtil(this.props.selected).safeClone(moment()),
+      minDate: new DateUtil(this.props.minDate).safeClone(),
+      maxDate: new DateUtil(this.props.maxDate).safeClone()
     };
   },
 
@@ -63,6 +65,8 @@ var Calendar = React.createClass({
         key={key}
         day={day}
         date={this.state.date}
+        minDate={this.state.minDate}
+        maxDate={this.state.maxDate}
         onClick={this.handleDayClick.bind(this, day)}
         selected={new DateUtil(this.props.selected)} />
     );
