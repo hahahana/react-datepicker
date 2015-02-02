@@ -24,6 +24,8 @@ Installing is really simple and can be done in two different ways:
 - Install packages `npm install`
 - Start a static webserver `python -m SimpleHTTPServer`
 - And visit `localhost:8000/example.html` to see the example.
+- 
+To edit the source files, run grunt, which will compile into respective datepicker files. If changing stylesheets, you may need to run grunt scss-lint and follow the instructions to be able to compile sass.
 
 To run tests, simply run `grunt jest`.
 
