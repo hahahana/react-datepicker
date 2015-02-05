@@ -52,7 +52,7 @@
   position: relative;
 }
 
-.datepicker__current-month {
+.datepicker__date {
   color: black;
   font-weight: bold;
   font-size: 13px;
@@ -89,12 +89,13 @@
   line-height: 24px;
 }
 
-.datepicker__month {
+.datepicker__weeks {
   margin: 5px;
   text-align: center;
 }
 
 .datepicker__day {
+  border-radius: 4px;
   color: #ccc;
   display: inline-block;
   width: 24px;
@@ -111,15 +112,25 @@
   color: #000;
 }
 .datepicker__day--today {
+  color: #216ba5;
   font-weight: bold;
 }
-.datepicker__day--selected {
-  border-radius: 4px;
-  background-color: #216ba5;
+.datepicker__day--selected, .datepicker__day--range-start, .datepicker__day--range-end {
+  background-color: #2987d0;
   color: #fff;
 }
-.datepicker__day--selected:hover {
+.datepicker__day--selected:hover, .datepicker__day--range-start:hover, .datepicker__day--range-end:hover {
+  background-color: #2579ba;
+}
+.datepicker__day--range-end {
+  background-color: #216ba5;
+  color: #fff !important;
+}
+.datepicker__day--range-end:hover {
   background-color: #1d5d90;
+}
+.datepicker__day--between, .datepicker__day--between2 {
+  box-shadow: inset 0 0 1px #216ba5;
 }
 .datepicker__day--disabled {
   cursor: default;
@@ -142,4 +153,18 @@
   outline: none;
   border-color: #aeaeae;
   box-shadow: inset 0 2px 2px #e9e9e9, 0 0 10px 0 rgba(73, 107, 125, 0.3);
+}
+
+.datepicker__month {
+  display: inline-block;
+  vertical-align: top;
+}
+.datepicker__month--current .datepicker__weeks .datepicker__day--next-month {
+  visibility: hidden;
+}
+.datepicker__month--next .datepicker__weeks .datepicker__day--next-month {
+  color: #000;
+}
+.datepicker__month--next .datepicker__weeks .datepicker__day--this-month {
+  visibility: hidden;
 }

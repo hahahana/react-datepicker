@@ -1,0 +1,105 @@
+<html>
+  <head>
+    <script src="https://cdn.jsdelivr.net/momentjs/2.9.0/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/react/0.12.2/react-with-addons.js"></script>
+    <script src="https://cdn.jsdelivr.net/tether/0.6.5/tether.min.js"></script>
+    <script type="text/javascript" src="react-datepicker.js"></script>
+    <link rel="stylesheet" type="text/css" href="react-datepicker.css">
+  </head>
+
+  <style>
+    # this fixed an conflict with the height of the datepicker:
+      https://github.com/Hacker0x01/react-datepicker/issues/30
+
+    body {
+      min-height: 500px;
+    }
+
+    .daterangepicker div {
+      display: inline-block;
+    }
+  </style>
+
+  <body>
+    <h1>ReactJS DatePicker Example</h1>
+
+    <div id="datepicker-region"></div>
+
+    <script type="text/javascript">
+      var container = document.querySelector('#datepicker-region');
+      var DatePickerFactory = React.createFactory(DatePicker);
+      var exampleComponent = React.createClass({
+        displayName: 'exampleComponent',
+
+        getInitialState: function() {
+          return {
+            start_date: null,
+            end_date: null,
+          };
+        },
+
+        handleStartDateChange: function(date) {
+          this.setState({
+            start_date: date
+          });
+
+          if (date.isAfter(this.state.end_date)) {
+            this.setState({
+              end_date: date
+            });
+            setTimeout(function() {
+              this.refs.endDatePicker.handleFocus();
+            }.bind(this), 100);
+          }
+
+          if (this.state.end_date == null) {
+            setTimeout(function() {
+              this.refs.endDatePicker.handleFocus();
+            }.bind(this), 100);
+          }
+        },
+
+        handleEndDateChange: function(date) {
+          this.setState({
+            end_date: date
+          });
+
+          if (! this.state.start_date) {
+            this.setState({
+              start_date: moment()
+            })
+
+            setTimeout(function() {
+              this.refs.startDatePicker.handleFocus();
+            }.bind(this), 100);
+          }
+        },
+
+        render: function() {
+          return React.DOM.div({className: 'daterangepicker'}, [
+            DatePickerFactory({
+              key: 'startDate',
+              ref: 'startDatePicker',
+              test: 'start',
+              rangeEnd: this.state.end_date,
+              selected: this.state.start_date,
+              onChange: this.handleStartDateChange
+            }),
+            DatePickerFactory({
+              key: 'endDate',
+              ref: 'endDatePicker',
+              test: 'end',
+              minDate: this.state.start_date,
+              rangeEnd: this.state.end_date,
+              selected: this.state.end_date,
+              onChange: this.handleEndDateChange
+            })
+          ]);
+        }
+      });
+      var exampleComponentFactory = React.createFactory(exampleComponent);
+
+      React.render(exampleComponentFactory(), container);
+    </script>
+  </body>
+</html>
