@@ -34,7 +34,7 @@
   position: relative;
 }
 
-.datepicker__current-month {
+.datepicker__date {
   color: black;
   font-weight: bold;
   font-size: 13px;
@@ -68,7 +68,6 @@
   }
 }
 
-
 .datepicker__week-day {
   color: $muted-color;
   display: inline-block;
@@ -76,12 +75,13 @@
   line-height: $item-size;
 }
 
-.datepicker__month {
+.datepicker__weeks {
   margin: $datepicker__margin;
   text-align: center;
 }
 
 .datepicker__day {
+  border-radius: $border-radius;
   color: $muted-color;
   display: inline-block;
   width: $item-size;
@@ -100,17 +100,30 @@
   }
 
   &--today {
+    color: $selected-color;
     font-weight: bold;
   }
 
-  &--selected {
-    border-radius: $border-radius;
-    background-color: $selected-color;
+  &--selected, &--range-start, &--range-end {
+    background-color: lighten($selected-color, 10%);
     color: #fff;
+
+    &:hover {
+      background-color: lighten($selected-color, 5%);
+    }
+  }
+
+  &--range-end {
+    background-color: $selected-color;
+    color: #fff !important;
 
     &:hover {
       background-color: darken($selected-color, 5%);
     }
+  }
+
+  &--between, &--between2  {
+    box-shadow: inset 0 0 1px $selected-color;
   }
 
   &--disabled {
@@ -136,5 +149,30 @@
     outline: none;
     border-color: $border-color;
     box-shadow: inset 0 2px 2px #e9e9e9, 0 0 10px 0 rgba(73, 107, 125, .3);
+  }
+}
+
+.datepicker__month {
+  display: inline-block;
+  vertical-align: top;
+
+  &--current {
+    .datepicker__weeks .datepicker__day {
+      &--next-month {
+        visibility: hidden;
+      }
+    }
+  }
+
+  &--next {
+    .datepicker__weeks .datepicker__day {
+      &--next-month {
+        color: $text-color;
+      }
+
+      &--this-month {
+        visibility: hidden;
+      }
+    }
   }
 }

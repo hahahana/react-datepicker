@@ -93,34 +93,84 @@ var Calendar = React.createClass({displayName: "Calendar",
   },
 
   getInitialState: function() {
+    var nextMonth,
+        flag = false,
+        date = new DateUtil(this.props.selected).safeClone(moment());
+
+    // If there is a start date and an end date (selected)
+    if (this.props.test == 'end' && !! this.props.minDate && !! this.props.selected && ! this.props.rangeEnd) {
+      nextMonth = date;
+      date = new DateUtil(this.props.minDate).safeClone(moment());
+      flag = true;
+    // If there is an end date and an start date (selected)
+    } else if (this.props.test == 'start' && !! this.props.rangeEnd && !! this.props.selected) {
+      nextMonth = new DateUtil(this.props.rangeEnd).safeClone(moment());
+      flag = true;
+    } else {
+      if (!!this.props.minDate && this.props.minDate.isAfter(moment())) {
+        date = new DateUtil(this.props.minDate).safeClone();
+      }
+      nextMonth = new DateUtil(date._date).addMonth();
+    }
+
     return {
-      date: new DateUtil(this.props.selected).safeClone(moment())
+      hoverDate: new DateUtil(null),
+      date: date,
+      rangeEnd: new DateUtil(this.props.rangeEnd).safeClone(),
+      nextMonth: nextMonth,
+      dayTest: true,
+      flag: flag
     };
   },
 
   componentWillReceiveProps: function(nextProps) {
     // When the selected date changed
     if (nextProps.selected !== this.props.selected) {
+      var date = new DateUtil(nextProps.selected).safeClone(moment());
+
       this.setState({
-        date: new DateUtil(nextProps.selected).clone()
+        date: date,
+        nextMonth: new DateUtil(date._date).addMonth()
       });
     }
   },
 
   increaseMonth: function() {
+    var date, nextMonth;
+    if (this.state.flag && (this.state.nextMonth._date.month() - this.state.date._date.month()) > 1) {
+      date = this.state.date.addMonth();
+      nextMonth = this.state.nextMonth;
+    } else {
+      date = this.state.date.addMonth();
+      nextMonth = this.state.nextMonth.addMonth();
+    }
     this.setState({
-      date: this.state.date.addMonth()
+      date: date,
+      nextMonth: nextMonth
     });
   },
 
   decreaseMonth: function() {
+    var date, nextMonth;
+    if (this.state.flag && (this.state.nextMonth._date.month() - this.state.date._date.month()) > 1) {
+      date = this.state.date;
+      nextMonth = this.state.nextMonth.subtractMonth();
+    } else {
+      date = this.state.date.subtractMonth();
+      nextMonth = this.state.nextMonth.subtractMonth();
+    }
     this.setState({
-      date: this.state.date.subtractMonth()
+      date: date,
+      nextMonth: nextMonth
     });
   },
 
   weeks: function() {
     return this.state.date.mapWeeksInMonth(this.renderWeek);
+  },
+
+  nextMonthWeeks: function() {
+    return this.state.nextMonth.mapWeeksInMonth(this.renderNextMonthWeek);
   },
 
   handleDayClick: function(day) {
@@ -139,16 +189,56 @@ var Calendar = React.createClass({displayName: "Calendar",
     );
   },
 
+  renderNextMonthWeek: function(weekStart, key) {
+    if(! weekStart.weekInMonth(this.state.nextMonth)) {
+      return;
+    }
+
+    return (
+      React.createElement("div", {key: key, className: "week"}, 
+        this.days(weekStart)
+      )
+    );
+  },
+
+  handleHover: function(day) {
+    this.setState({
+      hoverDate: day
+    });
+  },
+
+  dropIt: function() {
+    this.setState({
+      dayTest: false
+    });
+  },
+
+  donde: function() {
+    this.setState({
+      dayTest: true
+    });
+  },
+
   renderDay: function(day, key) {
     var minDate = new DateUtil(this.props.minDate).safeClone(),
         maxDate = new DateUtil(this.props.maxDate).safeClone(),
         disabled = day.isBefore(minDate) || day.isAfter(maxDate);
+
+    if (!this.props.minDate) {
+      minDate = new DateUtil(this.props.selected);
+    }
 
     return (
       React.createElement(Day, {
         key: key, 
         day: day, 
         date: this.state.date, 
+        hoverDate: this.state.hoverDate, 
+        nextMonth: this.state.nextMonth, 
+        rangeStart: minDate, 
+        rangeEnd: this.state.rangeEnd, 
+        test: this.state.dayTest, 
+        onHover: this.handleHover, 
         onClick: this.handleDayClick.bind(this, day), 
         selected: new DateUtil(this.props.selected), 
         disabled: disabled})
@@ -161,32 +251,53 @@ var Calendar = React.createClass({displayName: "Calendar",
 
   render: function() {
     return (
-      React.createElement("div", {className: "datepicker"}, 
+      React.createElement("div", {className: "datepicker", onMouseLeave: this.dropIt, onMouseEnter: this.donde}, 
         React.createElement("div", {className: "datepicker__triangle"}), 
-        React.createElement("div", {className: "datepicker__header"}, 
-          React.createElement("a", {className: "datepicker__navigation datepicker__navigation--previous", 
-              onClick: this.decreaseMonth}
+        React.createElement("div", {className: "datepicker__month datepicker__month--current"}, 
+          React.createElement("div", {className: "datepicker__header"}, 
+            React.createElement("a", {className: "datepicker__navigation datepicker__navigation--previous", 
+                onClick: this.decreaseMonth}
+            ), 
+            React.createElement("span", {className: "datepicker__date"}, 
+              this.state.date.format("MMMM YYYY")
+            ), 
+            React.createElement("div", null, 
+              React.createElement("div", {className: "datepicker__day"}, "Mo"), 
+              React.createElement("div", {className: "datepicker__day"}, "Tu"), 
+              React.createElement("div", {className: "datepicker__day"}, "We"), 
+              React.createElement("div", {className: "datepicker__day"}, "Th"), 
+              React.createElement("div", {className: "datepicker__day"}, "Fr"), 
+              React.createElement("div", {className: "datepicker__day"}, "Sa"), 
+              React.createElement("div", {className: "datepicker__day"}, "Su")
+            )
           ), 
-          React.createElement("span", {className: "datepicker__current-month"}, 
-            this.state.date.format("MMMM YYYY")
-          ), 
-          React.createElement("a", {className: "datepicker__navigation datepicker__navigation--next", 
-              onClick: this.increaseMonth}
-          ), 
-          React.createElement("div", null, 
-            React.createElement("div", {className: "datepicker__day"}, "Mo"), 
-            React.createElement("div", {className: "datepicker__day"}, "Tu"), 
-            React.createElement("div", {className: "datepicker__day"}, "We"), 
-            React.createElement("div", {className: "datepicker__day"}, "Th"), 
-            React.createElement("div", {className: "datepicker__day"}, "Fr"), 
-            React.createElement("div", {className: "datepicker__day"}, "Sa"), 
-            React.createElement("div", {className: "datepicker__day"}, "Su")
+          React.createElement("div", {className: "datepicker__weeks"}, 
+            this.weeks()
           )
         ), 
-        React.createElement("div", {className: "datepicker__month"}, 
-          this.weeks()
-        )
-      )
+        React.createElement("div", {className: "datepicker__month datepicker__month--next"}, 
+          React.createElement("div", {className: "datepicker__header"}, 
+            React.createElement("span", {className: "datepicker__date"}, 
+              this.state.nextMonth.format("MMMM YYYY")
+            ), 
+            React.createElement("a", {className: "datepicker__navigation datepicker__navigation--next", 
+                onClick: this.increaseMonth}
+            ), 
+            React.createElement("div", null, 
+              React.createElement("div", {className: "datepicker__day"}, "Mo"), 
+              React.createElement("div", {className: "datepicker__day"}, "Tu"), 
+              React.createElement("div", {className: "datepicker__day"}, "We"), 
+              React.createElement("div", {className: "datepicker__day"}, "Th"), 
+              React.createElement("div", {className: "datepicker__day"}, "Fr"), 
+              React.createElement("div", {className: "datepicker__day"}, "Sa"), 
+              React.createElement("div", {className: "datepicker__day"}, "Su")
+            )
+          ), 
+          React.createElement("div", {className: "datepicker__weeks"}, 
+            this.nextMonthWeeks()
+          )
+         )
+       )
     );
   }
 });
@@ -343,7 +454,9 @@ var DatePicker = React.createClass({displayName: "DatePicker",
             onSelect: this.handleSelect, 
             hideCalendar: this.hideCalendar, 
             minDate: this.props.minDate, 
-            maxDate: this.props.maxDate})
+            maxDate: this.props.maxDate, 
+            test: this.props.test, 
+            rangeEnd: this.props.rangeEnd})
         )
       );
     }
@@ -376,17 +489,29 @@ module.exports = DatePicker;
 /** @jsx React.DOM */
 
 var Day = React.createClass({displayName: "Day",
+  handleHover: function() {
+    this.props.onHover(this.props.day);
+  },
+
   render: function() {
+    var x = this.props.test && this.props.day.isAfter(this.props.rangeStart) && this.props.day.isBefore(this.props.hoverDate);
+    var y = this.props.test && this.props.day.isAfter(moment()) && this.props.day.isBefore(this.props.hoverDate);
+
     classes = React.addons.classSet({
       'datepicker__day': true,
+      'datepicker__day--today': this.props.day.sameDay(moment()),
       'datepicker__day--disabled': this.props.disabled,
       'datepicker__day--selected': this.props.day.sameDay(this.props.selected),
       'datepicker__day--this-month': this.props.day.sameMonth(this.props.date),
-      'datepicker__day--today': this.props.day.sameDay(moment())
+      'datepicker__day--next-month': this.props.day.sameMonth(this.props.nextMonth),
+      'datepicker__day--range-start': this.props.day.sameDay(this.props.rangeStart),
+      'datepicker__day--range-end': this.props.day.sameDay(this.props.rangeEnd),
+      'datepicker__day--between': x,
+      'datepicker__day--between2': this.props.day.isAfter(this.props.rangeStart) && this.props.day.isBefore(this.props.rangeEnd)
     });
 
     return (
-      React.createElement("div", {className: classes, onClick: this.props.disabled ? null : this.props.onClick}, 
+      React.createElement("div", {className: classes, onClick: this.props.disabled ? null : this.props.onClick, onMouseEnter: this.handleHover}, 
         this.props.day.day()
       )
     );
